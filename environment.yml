@@ -1,0 +1,10 @@
+name: aoc2024s
+channels:
+  - defaults
+dependencies:
+  - jupyterlab
+  - matplotlib
+  - numpy
+  - pandas
+  - pip
+  - python=3.10

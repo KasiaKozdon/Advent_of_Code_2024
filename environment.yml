@@ -1,4 +1,4 @@
-name: aoc2024s
+name: aoc2024
 channels:
   - defaults
 dependencies:

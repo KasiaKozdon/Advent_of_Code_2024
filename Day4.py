@@ -1,60 +1,43 @@
-import os 
-import re
 import unittest
 
-import numpy as np
-import numpy.typing as npt
 
 def generate_answer(input: str) -> int:
-    # convert input to numpy
-    width = input.find("\n") 
-    height = input.count("\n") 
-    input_as_np = np.empty((height, width), dtype=str)
-    input = input.split("\n")
+    input = input.rstrip().split("\n")
+
+    xmas_instances = 0
     for row_idx, row in enumerate(input):
         for letter_idx, letter in enumerate(row):
-            input_as_np[row_idx, letter_idx] = letter
-
-    # generate all strings
-    possible_strings = []
-    # horizontal
-    possible_strings = list(np.apply_along_axis(convert_numpy_array_to_string, arr=input_as_np, axis=1))
-    #possible_strings.append(input.split("\n"))
-    # horizontal backwards
-    possible_strings.extend([reverse_string(string) for string in possible_strings])
-    # vertical up down
-    possible_strings.extend(list(np.apply_along_axis(convert_numpy_array_to_string, arr=input_as_np, axis=0)))
-    # vertical down up
-    possible_strings.extend([reverse_string(string) for string in possible_strings[-height:]])
-   
-    #diagonal left top bottom
-    possible_strings.extend([convert_numpy_array_to_string(np.diagonal(input_as_np, offset=j, axis1=0, axis2=1)) for j in range(-width, width)])
-    #diagonal left bottom top
-    possible_strings.extend([convert_numpy_array_to_string(np.diagonal(input_as_np, offset=j, axis1=1, axis2=0)) for j in range(-width, width)])
-    #diagonal right top bottom
-    possible_strings.extend([convert_numpy_array_to_string(np.fliplr(input_as_np).diagonal(offset=j, axis1=0, axis2=1)) for j in range(-width, width)])  # horizontal flip
-    #diagonal right bottom top
-    possible_strings.extend([convert_numpy_array_to_string(np.flipud(input_as_np).diagonal(offset=j, axis1=0, axis2=1)) for j in range(-width, width)])  # vertical flip
-
-    xmas_instances = find_all_xmas(possible_strings)
+            for x_stride in [-1, 0, 1]:
+                for y_stride in [-1, 0, 1]:
+                    if letter == "X":
+                        xmas_instances += find_xmas_string(input,
+                        x_stride = x_stride, y_stride = y_stride, 
+                        starting_x = letter_idx, starting_y = row_idx,
+                        str_to_find = "XMAS")
+                    
     return xmas_instances
 
 
-def convert_numpy_array_to_string(array: npt.ArrayLike) -> str:
-    return ''.join(array.tolist())
+def find_xmas_string(puzzle_input: list[str],
+                     x_stride: int = 1, y_stride: int = 0, 
+                     starting_x: int = 0, starting_y: int = 0,
+                     str_to_find: str = "XMAS"):
 
-
-def reverse_string(str_to_reverse: str) -> str:
-    return str_to_reverse[::-1]
-
-
-def find_all_xmas(possible_strings: list[str]) -> int:
-    xmas_instances = 0
-    for line in possible_strings:
-        hits = re.findall("XMAS", line)
-        xmas_instances += len(hits)
-    return xmas_instances
-
+    x = starting_x
+    y = starting_y  
+    for char_to_find in str_to_find:  
+        # Checks assume that the lengtht of each row is the same, as in the provided examples
+        if x < 0 or y < 0 or y >= len(puzzle_input) or x >= len(puzzle_input[0]):
+            return 0
+        else:
+            if puzzle_input[y][x] == char_to_find:
+                x += x_stride
+                y += y_stride
+            else:
+                return 0
+    return 1
+        
+        
 
 class Test(unittest.TestCase):
     def test_with_provided_example(self):

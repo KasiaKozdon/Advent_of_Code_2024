@@ -14,6 +14,19 @@ def generate_answer(input: str) -> int:
     return sum(middle_page_nr)
 
 
+def generate_answer_part2(input: str) -> int:
+    middle_page_nr = []
+
+    rules = get_rules(input)
+    updates = get_page_numbers(input)
+    for update in updates:
+        if not check_if_ordering_correct(update, rules):
+            update = reorder(update, rules)
+            middle_page_nr.append(update[len(update) // 2])
+
+    return sum(middle_page_nr)
+
+
 def get_rules(input: str) -> list[tuple]:
     """Extracts rules of page ordering from the instructions. 
     Returns list of tuples (a, b), where if a and b are both present, a has to be before b"""
@@ -50,6 +63,17 @@ def check_if_ordering_correct(page_numbers: list[int], rules: list[tuple]) -> bo
     return True
 
 
+def reorder(page_numbers: list[int], rules: list[tuple]) -> list[int]:
+    while not check_if_ordering_correct(page_numbers, rules):
+        for (preceding_page, following_page) in rules:
+            if any([page_nr == preceding_page for page_nr in page_numbers]):
+                preceding_page_idx = page_numbers.index(preceding_page)
+                if any([page_nr == following_page for page_nr in page_numbers[:preceding_page_idx]]):
+                    page_numbers.remove(following_page)
+                    page_numbers.insert(preceding_page_idx+1, following_page)
+    return page_numbers
+
+
 class Test(unittest.TestCase):
     def test_with_provided_example_find_correct(self):
         with open("inputs/input5_test.txt") as f:
@@ -68,7 +92,16 @@ class Test(unittest.TestCase):
         predicted_answer = generate_answer(data)
         expected_answer = 143
         self.assertEqual(expected_answer, predicted_answer)
-        
+
+
+    def test_with_provided_example_part2(self):
+        with open("inputs/input5_test.txt") as f:
+            data = f.read()
+
+        predicted_answer = generate_answer_part2(data)
+        expected_answer = 123
+        self.assertEqual(expected_answer, predicted_answer)
+     
 
 
 if __name__ == "__main__":
@@ -80,3 +113,7 @@ if __name__ == "__main__":
     # Part 1
     answer = generate_answer(data)
     print(f"Answer for part 1: {answer}")
+
+    # Part 2
+    answer = generate_answer_part2(data)
+    print(f"Answer for part 2: {answer}")
